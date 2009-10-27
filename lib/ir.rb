@@ -120,9 +120,11 @@ class Ir
 
   # Immediately load irbrc
   def self.irbrc
-    home = ENV['HOME']
-    home ||= ENV['HOMEDRIVE'] + ENV['HOMEPATH']
-    rc = "#{home}/.irbrc"
+    rc = "#{user_home}/.irbrc"
     Kernel.load rc if File.exists?(rc)
+  end
+  
+  def self.user_home
+    ENV['HOME'] || ENV['HOMEDRIVE'] + ENV['HOMEPATH']
   end
 end
