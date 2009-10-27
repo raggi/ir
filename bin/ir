@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby -Ilib -rubygems
+#!/usr/bin/env ruby
 
 require 'ir'
 
