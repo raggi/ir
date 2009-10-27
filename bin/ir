@@ -2,6 +2,24 @@
 
 require 'ir'
 
-$ir = Ir.new
-$ir.load_irbrc
-$ir.start
+# TODO implement Ir.rc and .irrc, as these can be used to setup which runner
+# and runner arguments should be used by default for runs of Ir from this
+# binary.
+# Example (maybe):
+# Ir.rc do
+#   runner Readline
+#   runner_args [$stdout, :tty_exit_on_eof => false]
+# end
+
+Ir.irbrc
+
+begin
+  require 'readline'
+rescue LoadError
+end
+
+if defined?(::Readline)
+  Ir::Readline.new
+else
+  Ir::Tty.new
+end
