@@ -60,6 +60,8 @@ class Ir
   def consume
     value = eval("_ = (#{@buffer})", @binding, @name, @bufferline)
     @inspector.call self, value
+  rescue SystemExit
+    raise
   rescue Exception => exception
     notify_exception(exception)
   ensure
