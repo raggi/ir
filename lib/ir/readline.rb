@@ -1,18 +1,20 @@
 require 'readline'
 
 # 1.8.6 + readline
-unless ::Readline::HISTORY.respond_to?(:find_index)
-  return unless ::Readline::HISTORY.respond_to?(:each_with_index)
-  class <<Readline::HISTORY
-    def find_index(obj)
-      each_with_index { |o, i| return i if obj == o }
-      nil
+unless Readline::HISTORY.respond_to?(:find_index)
+  if Readline::HISTORY.respond_to?(:each_with_index)
+    class <<Readline::HISTORY
+      def find_index(obj)
+        each_with_index { |o, i| return i if obj == o }
+        nil
+      end
     end
   end
 end
 
 class Ir
   class Readline < Tty
+
     TERM = "\n"
     DEFAULTS = {
       :term => TERM,
