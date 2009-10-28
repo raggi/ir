@@ -7,7 +7,6 @@ class Ir
       :term => TERM,
       :history => true,
       :history_file => Ir.user_home + '/.ir_history',
-      :history_uniq => true,
       :history_save => -1,
       # Darwin readline bug!
       # TODO - support native readline build here, more cleanly
@@ -16,13 +15,28 @@ class Ir
     }
     havehist = File.exists?(DEFAULTS[:history_file])
     DEFAULTS[:load_history] = DEFAULTS[:save_history] = havehist
+    HISTORY_UNIQ_REQUIREMENTS = %w(find_index delete_at push)
+
+    def self.support_history_uniq?
+      HISTORY_UNIQ_REQUIREMENTS.all? { |r| ::Readline::HISTORY.respond_to? r }
+    end
+    DEFAULTS[:history_uniq] = support_history_uniq?
 
     def initialize(input = $stdin, output = $stdout, options = {})
       @options = DEFAULTS.merge(options)
       ::Readline.input = input if ::Readline.respond_to?(:input=)
       ::Readline.output = output if ::Readline.respond_to?(:output=)
       @history = @options[:history]
-      @history_uniq = @options[:history_uniq]
+
+      @history_uniq = if @options[:history_uniq]
+        unless self.class.support_history_uniq?
+          raise ArgumentError, "History not supported on this platform"
+        end
+        true
+      else
+        false
+      end
+
       load_history if @options[:load_history]
       super(input, output, @options)
     end
