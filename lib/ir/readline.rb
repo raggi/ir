@@ -21,6 +21,7 @@ class Ir
       :history => true,
       :history_file => Ir.user_home + '/.ir_history',
       :history_save => -1,
+      :completion => true,
       # Darwin readline bug!
       # TODO - support native readline build here, more cleanly
       # TODO - really need to check some other platforms for these defaults..
@@ -50,6 +51,7 @@ class Ir
         false
       end
 
+      setup_completion
       load_history if @options[:load_history]
       super(input, output, @options)
     end
@@ -92,6 +94,16 @@ class Ir
       end
       history.uniq! if @history_uniq
       ::Readline::HISTORY.push *history
+    end
+
+    def setup_completion
+      return unless @options[:completion]
+      if ::Readline.respond_to?(:basic_word_break_characters=)
+        ::Readline.basic_word_break_characters = " \t\n\"\\'`><=;|&{("
+      end
+      ::Readline.completion_append_character = nil
+      b = @options[:binding] || Ir::DEFAULTS[:binding]
+      ::Readline.completion_proc = Ir::Completion.new(b)
     end
 
   end

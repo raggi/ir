@@ -1,6 +1,7 @@
 class Ir
   autoload :Tty, 'ir/tty'
   autoload :Readline, 'ir/readline'
+  autoload :Completion, 'ir/completion'
 
   FROM = "\tfrom "
 
