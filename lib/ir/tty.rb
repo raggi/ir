@@ -5,6 +5,7 @@ class Ir
     }
     def initialize(input = $stdin, output = $stdout, options = {})
       options = DEFAULTS.merge(options)
+      @exit_callback = options[:tty_exit_callback]
       @exit_on_eof = options[:tty_exit_on_eof]
       @input = input
       @output = output
@@ -43,6 +44,7 @@ class Ir
       yield
     rescue EOFError
       puts # TODO optionme?
+      @exit_callback.call if @exit_callback
       exit if @exit_on_eof
     end
   end

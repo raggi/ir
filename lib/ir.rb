@@ -2,6 +2,7 @@ class Ir
   autoload :Tty, 'ir/tty'
   autoload :Readline, 'ir/readline'
   autoload :Completion, 'ir/completion'
+  autoload :SocketReadline, 'ir/socket_readline'
 
   FROM = "\tfrom "
 
@@ -35,9 +36,11 @@ class Ir
     :inspector => lambda { |ir, o| ir.results o.inspect }
   }
 
+  attr_accessor :prompt
+
   def initialize(options = {})
     @options = DEFAULTS.merge(options)
-    @prompts, @output, @name = *@options.values_at(:prompts, :output, :name)
+    @prompts, @output, @name = @options.values_at(:prompts, :output, :name)
     @inspector, @binding = @options.values_at(:inspector, :binding)
     @term = @options[:term]
     @buffer, @bufferline, @inputline, @prompt = '', 1, 1, :normal
@@ -59,7 +62,7 @@ class Ir
   end
 
   def consume
-    value = eval("_ = (#{@buffer})", @binding, @name, @bufferline)
+    value = eval("_ = #{@buffer}", @binding, @name, @bufferline)
     @inspector.call self, value
   rescue SystemExit
     raise
@@ -73,7 +76,7 @@ class Ir
     lineno ||= @inputline
     name ||= @prompt
     prompt = @prompts[name]
-    case prompt
+    s = case prompt
     when String
       prompt
     when Proc
@@ -81,6 +84,7 @@ class Ir
     else
       prompt.to_s
     end
+    "\r#{s}"
   end
 
   def notify_exception(exception)

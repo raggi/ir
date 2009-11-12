@@ -41,7 +41,7 @@ class Ir
       ::Readline.input = input if ::Readline.respond_to?(:input=)
       ::Readline.output = output if ::Readline.respond_to?(:output=)
       @history = @options[:history]
-
+      @term = @options[:term]
       @history_uniq = if @options[:history_uniq]
         unless self.class.support_history_uniq?
           raise ArgumentError, "History not supported on this platform"
@@ -60,12 +60,14 @@ class Ir
       exit_on_eof do
         interruptable do
           if line = ::Readline.readline(@ir.prompt, @history && !@history_uniq)
+            line.strip!
+            next if line.empty?
             if @history_uniq
               idx = history.find_index(line)
               history.delete_at(idx) if idx
-              history.push(line) unless line.empty?
+              history.push(line)
             end
-            @ir << line + TERM
+            @ir << line + @term
           else
             raise EOFError
           end
