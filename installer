@@ -1,0 +1,48 @@
+#!/usr/bin/env ruby
+require 'pathname'
+require 'fileutils'
+require 'rbconfig'
+
+include Config
+include FileUtils
+class Path < Pathname; alias / +; end
+
+bin_fmt = CONFIG['RUBY_INSTALL_NAME'].sub('ruby', '%s')
+site_dir = Path.new(CONFIG['sitedir'])
+bin_dir = Path.new(CONFIG['bindir'])
+
+USAGE = "Usage: #{File.basename($0)} [install|uninstall|manifest]"
+
+manifest_path = site_dir/'ir_manifest.list'
+
+case ARGV.first
+when /^m(anifest)?/
+  open(manifest_path) { |m| m.each_line { |f| puts f } }
+when /^u(ninstall)?/
+  open(manifest_path) do |manifest|
+    manifest.each_line { |f| rm_rf f; puts f }
+  end
+  rm manifest_path
+  puts manifest_path
+when /^i(nstall)?/, nil
+  Dir.chdir(File.dirname(__FILE__)) do
+    open(manifest_path, 'w+') do |manifest|
+      Dir['lib/*'].each do |source|
+        target = site_dir/source.sub('lib/', '')
+        cp_r source, target
+        puts target
+        manifest.puts target
+      end
+
+      Dir['bin/*'].each do |source|
+        target = bin_dir/source.sub('bin/', '')
+        cp_r source, target
+        puts target
+        manifest.puts target
+      end
+    end
+    puts manifest_path
+  end
+else
+  abort USAGE
+end
