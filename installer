@@ -25,18 +25,21 @@ when /^u(ninstall)?/
   rm manifest_path
   puts manifest_path
 when /^i(nstall)?/, nil
+  File.umask 0022
   Dir.chdir(File.dirname(__FILE__)) do
     open(manifest_path, 'w+') do |manifest|
       Dir['lib/*'].each do |source|
         target = site_dir/source.sub('lib/', '')
+        rm_rf target
         cp_r source, target
         puts target
         manifest.puts target
       end
 
       Dir['bin/*'].each do |source|
-        target = bin_dir/source.sub('bin/', '')
+        target = bin_fmt % (bin_dir/source.sub('bin/', ''))
         cp_r source, target
+        chmod 0755, target
         puts target
         manifest.puts target
       end
