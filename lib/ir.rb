@@ -60,7 +60,7 @@ class Ir
   end
 
   def syntax?
-    catch(:ok) { eval("BEGIN{throw:ok,true}; #{@buffer}") }
+    catch(:ok) { eval("BEGIN{throw:ok,true}; _ = #{@buffer}") }
   rescue SyntaxError
     false
   end
