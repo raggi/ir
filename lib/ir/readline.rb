@@ -60,8 +60,6 @@ class Ir
       exit_on_eof do
         interruptable do
           if line = ::Readline.readline(@ir.prompt, @history && !@history_uniq)
-            line.strip!
-            next if line.empty?
             if @history_uniq
               idx = history.find_index(line)
               history.delete_at(idx) if idx

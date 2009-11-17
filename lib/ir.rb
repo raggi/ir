@@ -3,8 +3,10 @@ class Ir
   autoload :Readline, 'ir/readline'
   autoload :Completion, 'ir/completion'
   autoload :SocketReadline, 'ir/socket_readline'
+  autoload :Test, 'ir/test'
 
   FROM = "\tfrom "
+  CR = "\r"
 
   PROMPTS = {}
   PROMPTS[:simple] = {
@@ -32,11 +34,13 @@ class Ir
     :thread_local_var => :ir,
     :clear_on_interrupt => false,
     :puts_on_interrupt => true,
+    :prompt_carriage_return => true,
     :prompts => PROMPTS[:complex],
     :inspector => lambda { |ir, o| ir.results o.inspect }
   }
 
   attr_accessor :prompt
+  attr_reader :options
 
   def initialize(options = {})
     @options = DEFAULTS.merge(options)
@@ -84,7 +88,7 @@ class Ir
     else
       prompt.to_s
     end
-    "\r#{s}"
+    "#{CR if @options[:prompt_carriage_return]}#{s}"
   end
 
   def notify_exception(exception)
@@ -122,7 +126,7 @@ class Ir
   end
 
   def puts(*args)
-    @output.puts(*args)
+    print(args.join(@term), @term)
   end
 
   # Immediately load irbrc
