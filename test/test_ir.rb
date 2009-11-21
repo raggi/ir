@@ -1,11 +1,34 @@
-require "test/unit"
+begin
+  require 'test/unit'
+rescue LoadError, Exception
+  e = $!
+  begin
+    require "minitest/autorun"
+  rescue LoadError
+    abort "tests require test-unit or minitest, exceptions:"
+    # maglev debugging...
+    p e.message
+    p $!.message
+  end
+end
 require 'stringio'
 
 require "ir"
 
-class TestIr < Test::Unit::TestCase
+TC = defined?(Test::Unit::TestCase) ? Test::Unit::TestCase : MiniTest::Unit::TestCase
+
+class TestIr < TC
 
   attr_reader :output, :ir
+
+  # Old rubies...
+  def __method__
+    caller[1][/`(.*)'/,1]
+  end unless defined?(__method__)
+  
+  def maglev?
+    RUBY_ENGINE == 'maglev'
+  end
 
   def ir_options
     {
@@ -55,13 +78,17 @@ class TestIr < Test::Unit::TestCase
     begin
       l = __LINE__; raise 'boom'
     rescue
-      $!.backtrace.slice!(1..-1)
+      bt = $!.backtrace.slice(0..2)
+      # maglev hax, god i'm lazy.
+      class <<$!;self;end.class_eval do
+        define_method(:backtrace) { bt }
+      end
       ir.notify_exception($!)
     end
     output.rewind
-    assert_equal <<-PLAIN.lines.map{|l|l.lstrip}.join, output.read
+    assert_equal <<-PLAIN.split("\n").map{|l|l.lstrip}.join("\n"), output.read
     #> RuntimeError: boom
-    #> \tfrom #{__FILE__}:#{l}:in `#{__method__}'
+    #> \tfrom #{maglev? ? File.expand_path(__FILE__) : __FILE__}:#{l}:in `#{__method__}'
     PLAIN
   end
 
