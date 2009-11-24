@@ -133,6 +133,9 @@ class Ir
   def self.irbrc
     rc = "#{user_home}/.irbrc"
     Kernel.load rc if File.exists?(rc)
+  rescue
+    warn "Error while loading #{rc}:"
+    warn "#{$!.message} (#{$!.class})\n\t#{$!.backtrace.join("\n\t")}"
   end
   
   def self.user_home
